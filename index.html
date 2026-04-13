@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VDS — Entscheidung gespeichert</title>
+<style>
+body{font-family:-apple-system,Helvetica,sans-serif;max-width:520px;margin:40px auto;padding:28px 24px;background:#faf8f5;color:#2c2c2c;line-height:1.5;font-size:14px}
+h1{font-size:20px;font-weight:500;margin:0 0 16px}
+.badge{display:inline-block;font-weight:700;font-size:16px;padding:8px 20px;border-radius:4px;margin-bottom:16px}
+.step{padding:6px 0 6px 14px;font-size:13px;color:#555;margin-bottom:4px}
+</style>
+<script>
+const params = new URLSearchParams(window.location.search);
+const action = params.get('action') || 'integrate';
+const signal = params.get('signal') || '';
+const info = {
+  integrate: {label:'Integrieren',color:'#03EFCD',tc:'#1a1a1a',desc:'Das Signal wird als relevant eingestuft und zur Vertiefung markiert.',steps:['Wird als Content-Kandidat markiert (LinkedIn, Vortrag, Training)','Geht priorisiert in die Wiki-Kompilierung','Kann Grundlage für ein Essential werden']},
+  observe: {label:'Beobachten',color:'#EFF400',tc:'#1a1a1a',desc:'Das Signal wird auf die Watchlist gesetzt und später erneut geprüft.',steps:['Erscheint beim nächsten Weekly Pulse erneut','Keine sofortige Vertiefung, aber nicht verworfen','Kann später zu Integrieren hochgestuft werden']},
+  ignore: {label:'Ignorieren',color:'#FF487A',tc:'#ffffff',desc:'Das Signal wird als nicht relevant eingestuft.',steps:['Erscheint nicht mehr in Alerts oder Briefings','Bleibt im Archiv als Quellennachweis erhalten','Kann bei Bedarf reaktiviert werden']}
+};
+const a = info[action] || info.integrate;
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('badge').style.background = a.color;
+  document.getElementById('badge').style.color = a.tc;
+  document.getElementById('badge').textContent = a.label;
+  document.getElementById('desc').textContent = a.desc;
+  document.getElementById('steps').innerHTML = a.steps.map(s => '<div class="step" style="border-left:2px solid '+a.color+'">'+s+'</div>').join('');
+  document.getElementById('signal').textContent = 'Signal: ' + signal;
+});
+</script>
+</head>
+<body>
+<p style="font-size:12px;color:#888;margin-bottom:20px">VDS Rückkanal</p>
+<h1>Entscheidung gespeichert</h1>
+<div id="badge" class="badge"></div>
+<p id="desc" style="font-size:14px;color:#555;margin:16px 0"></p>
+<p style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin:24px 0 8px">Was jetzt passiert</p>
+<div id="steps"></div>
+<p id="signal" style="font-size:12px;color:#bbb;margin:24px 0 4px"></p>
+<p style="font-size:11px;color:#ddd">Protokolliert in Supabase. Sync ins Vault beim nächsten Lauf.</p>
+</body>
+</html>
