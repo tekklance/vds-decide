@@ -9,19 +9,31 @@ body{font-family:-apple-system,Helvetica,sans-serif;max-width:520px;margin:40px 
 h1{font-size:20px;font-weight:500;margin:0 0 16px}
 .badge{display:inline-block;font-weight:700;font-size:16px;padding:8px 20px;border-radius:4px;margin-bottom:16px}
 .step{padding:6px 0 6px 14px;font-size:13px;color:#555;margin-bottom:4px}
-.open-btn{display:inline-block;background:#7757E1;color:white;font-weight:600;font-size:14px;padding:10px 22px;border-radius:4px;text-decoration:none;margin-top:16px}
+.open-btn{display:inline-block;background:#7757E1;color:white;font-weight:600;font-size:14px;padding:10px 22px;border-radius:4px;text-decoration:none;margin-top:8px}
 .open-btn:hover{opacity:0.9}
+.note-section{margin-top:28px;padding-top:20px;border-top:1px solid #e8e0d6}
+.note-label{font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.note-input{width:100%;min-height:80px;padding:12px;border:1px solid #d0c8be;border-radius:4px;font-family:-apple-system,Helvetica,sans-serif;font-size:14px;background:white;resize:vertical;box-sizing:border-box}
+.note-input:focus{outline:none;border-color:#7757E1}
+.note-btn{display:inline-block;background:#D2BCA1;color:#1a1a1a;font-weight:600;font-size:13px;padding:8px 18px;border-radius:4px;border:none;cursor:pointer;margin-top:8px;font-family:-apple-system,Helvetica,sans-serif}
+.note-btn:hover{background:#c8a87c}
+.note-btn:disabled{opacity:0.5;cursor:not-allowed}
+.note-success{display:none;font-size:13px;color:#059669;margin-top:8px}
 </style>
 <script>
 const params = new URLSearchParams(window.location.search);
 const action = params.get('action') || 'integrate';
 const signal = params.get('signal') || '';
+const SUPABASE_URL = 'https://mqfvyhhidvtsmwygacea.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1xZnZ5aGhpZHZ0c213eWdhY2VhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA1NDYxNTAsImV4cCI6MjA4NjEyMjE1MH0.vCrTLDzgjJRJcTrPr0qpYucWFmDGRQOU8d9gSujBTCk';
+
 const info = {
   integrate: {label:'Integrieren',color:'#03EFCD',tc:'#1a1a1a',desc:'Das Signal wird als relevant eingestuft und zur Vertiefung markiert.',steps:['Wird als Content-Kandidat markiert (LinkedIn, Vortrag, Training)','Geht priorisiert in die Wiki-Kompilierung','Kann Grundlage für ein Essential werden']},
   observe: {label:'Beobachten',color:'#EFF400',tc:'#1a1a1a',desc:'Das Signal wird auf die Watchlist gesetzt und später erneut geprüft.',steps:['Erscheint beim nächsten Weekly Pulse erneut','Keine sofortige Vertiefung, aber nicht verworfen','Kann später zu Integrieren hochgestuft werden']},
   ignore: {label:'Ignorieren',color:'#FF487A',tc:'#ffffff',desc:'Das Signal wird als nicht relevant eingestuft.',steps:['Erscheint nicht mehr in Alerts oder Briefings','Bleibt im Archiv als Quellennachweis erhalten','Kann bei Bedarf reaktiviert werden']}
 };
 const a = info[action] || info.integrate;
+
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('badge').style.background = a.color;
   document.getElementById('badge').style.color = a.tc;
@@ -30,11 +42,48 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('steps').innerHTML = a.steps.map(s => '<div class="step" style="border-left:2px solid '+a.color+'">'+s+'</div>').join('');
   document.getElementById('signal').textContent = signal;
 
-  // Obsidian-URI Link
   const obsidianPath = '10-F_Knowledge/1_Organized/' + signal;
-  const obsidianUri = 'obsidian://open?vault=Business&file=' + encodeURIComponent(obsidianPath);
-  document.getElementById('obsidian-link').href = obsidianUri;
+  document.getElementById('obsidian-link').href = 'obsidian://open?vault=Business&file=' + encodeURIComponent(obsidianPath);
 });
+
+async function sendNote() {
+  const note = document.getElementById('note-input').value.trim();
+  if (!note) return;
+
+  const btn = document.getElementById('note-btn');
+  btn.disabled = true;
+  btn.textContent = 'Wird gespeichert...';
+
+  try {
+    const resp = await fetch(SUPABASE_URL + '/rest/v1/decisions', {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        signal_id: signal,
+        action: 'note',
+        source_email: note
+      })
+    });
+
+    if (resp.ok) {
+      document.getElementById('note-success').style.display = 'block';
+      document.getElementById('note-input').value = '';
+      btn.textContent = 'Gespeichert ✓';
+      setTimeout(() => { btn.textContent = 'Notiz senden'; btn.disabled = false; }, 3000);
+    } else {
+      btn.textContent = 'Fehler — nochmal versuchen';
+      btn.disabled = false;
+    }
+  } catch(e) {
+    btn.textContent = 'Fehler — nochmal versuchen';
+    btn.disabled = false;
+  }
+}
 </script>
 </head>
 <body>
@@ -44,6 +93,14 @@ document.addEventListener('DOMContentLoaded', () => {
 <p id="desc" style="font-size:14px;color:#555;margin:16px 0"></p>
 <p style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin:24px 0 8px">Was jetzt passiert</p>
 <div id="steps"></div>
+
+<div class="note-section">
+<p class="note-label">Notiz hinzufügen (optional)</p>
+<textarea id="note-input" class="note-input" placeholder="Warum ist das relevant? Was soll damit passieren? Eigene Gedanken..."></textarea>
+<button id="note-btn" class="note-btn" onclick="sendNote()">Notiz senden</button>
+<p id="note-success" class="note-success">✓ Notiz gespeichert — wird beim nächsten Sync ins Vault übertragen.</p>
+</div>
+
 <p style="margin-top:24px"><a id="obsidian-link" href="#" class="open-btn">Signal in Obsidian öffnen</a></p>
 <p style="font-size:12px;color:#bbb;margin:20px 0 4px">Signal: <span id="signal"></span></p>
 <p style="font-size:11px;color:#ddd">Protokolliert in Supabase. Sync ins Vault beim nächsten Lauf.</p>
