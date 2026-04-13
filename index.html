@@ -9,6 +9,8 @@ body{font-family:-apple-system,Helvetica,sans-serif;max-width:520px;margin:40px 
 h1{font-size:20px;font-weight:500;margin:0 0 16px}
 .badge{display:inline-block;font-weight:700;font-size:16px;padding:8px 20px;border-radius:4px;margin-bottom:16px}
 .step{padding:6px 0 6px 14px;font-size:13px;color:#555;margin-bottom:4px}
+.open-btn{display:inline-block;background:#7757E1;color:white;font-weight:600;font-size:14px;padding:10px 22px;border-radius:4px;text-decoration:none;margin-top:16px}
+.open-btn:hover{opacity:0.9}
 </style>
 <script>
 const params = new URLSearchParams(window.location.search);
@@ -26,7 +28,12 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('badge').textContent = a.label;
   document.getElementById('desc').textContent = a.desc;
   document.getElementById('steps').innerHTML = a.steps.map(s => '<div class="step" style="border-left:2px solid '+a.color+'">'+s+'</div>').join('');
-  document.getElementById('signal').textContent = 'Signal: ' + signal;
+  document.getElementById('signal').textContent = signal;
+
+  // Obsidian-URI Link
+  const obsidianPath = '10-F_Knowledge/1_Organized/' + signal;
+  const obsidianUri = 'obsidian://open?vault=Business&file=' + encodeURIComponent(obsidianPath);
+  document.getElementById('obsidian-link').href = obsidianUri;
 });
 </script>
 </head>
@@ -37,7 +44,8 @@ document.addEventListener('DOMContentLoaded', () => {
 <p id="desc" style="font-size:14px;color:#555;margin:16px 0"></p>
 <p style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin:24px 0 8px">Was jetzt passiert</p>
 <div id="steps"></div>
-<p id="signal" style="font-size:12px;color:#bbb;margin:24px 0 4px"></p>
+<p style="margin-top:24px"><a id="obsidian-link" href="#" class="open-btn">Signal in Obsidian öffnen</a></p>
+<p style="font-size:12px;color:#bbb;margin:20px 0 4px">Signal: <span id="signal"></span></p>
 <p style="font-size:11px;color:#ddd">Protokolliert in Supabase. Sync ins Vault beim nächsten Lauf.</p>
 </body>
 </html>
